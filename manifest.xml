@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <!-- Core Identification -->
+  <key>masterticketsync</key>
+  <name>Master Ticket Sync</name>
+  <version>1.0.1</version>
+  <license>GPLv2+</license>
+  <author>Matthew Nixon</author>
+  <homepage>https://github.com/MDNSCode/masterticketsync</homepage>
+  
+  <!-- Multilingual Description -->
+  <descriptions>
+    <description lang="en_GB">
+      Synchronizes master and slave tickets with automatic relationship tracking
+      and status propagation between connected tickets.
+    </description>
+    <description lang="fr_FR">
+      Synchronise les tickets maîtres et esclaves avec suivi des relations
+      et propagation automatique des statuts.
+    </description>
+  </descriptions>
+
+  <!-- System Requirements -->
+  <requirements>
+    <glpi min="10.0" max="11.0" />
+    <php min="7.4" />
+    <database engine="InnoDB" />
+  </requirements>
+
+  <!-- Plugin Type Declarations -->
+  <types>
+    <type>Ticket</type>
+    <type>Config</type>
+    <type>Notification</type>
+  </types>
+
+  <!-- Registered Hooks -->
+  <hooks>
+    <hook file="hook.php">
+      <handler type="item_add">handleNewTicket</handler>
+      <handler type="item_update">handleTicketUpdate</handler>
+      <handler type="pre_item_add">validateTicketRelation</handler>
+    </hook>
+  </hooks>
+
+  <!-- Database Schema -->
+  <database>
+    <table name="glpi_plugin_masterticketsync_relations" charset="utf8mb4" collation="utf8mb4_unicode_ci">
+      <field name="id" type="autoincrement" />
+      <field name="master_ticket_id" type="int" unsigned="true" />
+      <field name="slave_ticket_id" type="int" unsigned="true" />
+      <field name="relation_type" type="varchar" length="50" default="'hierarchy'" />
+      <field name="created_at" type="timestamp" default="CURRENT_TIMESTAMP" />
+      
+      <key type="primary" field="id" />
+      <key type="unique" name="master_slave_unique" field="master_ticket_id,slave_ticket_id" />
+      <foreign key="master_ticket_id" table="glpi_tickets" field="id" ondelete="CASCADE" />
+      <foreign key="slave_ticket_id" table="glpi_tickets" field="id" ondelete="CASCADE" />
+    </table>
+  </database>
+
+  <!-- Menu Integration -->
+  <menus>
+    <menu type="config" name="Master Ticket Sync" 
+          directory="masterticketsync" 
+          page="front/config.form.php" 
+          icon="fas fa-sync-alt" />
+  </menus>
+
+  <!-- Rights Management -->
+  <profiles>
+    <profile name="masterticketsync" interface="admin" />
+  </profiles>
+
+  <!-- Optional Components -->
+  <notifications>
+    <notification name="sync_alert" />
+  </notifications>
+</plugin>
