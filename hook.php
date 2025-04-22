@@ -11,19 +11,21 @@ if (!defined('GLPI_ROOT')) {
 function plugin_init_masterticketsync() {
     global $PLUGIN_HOOKS;
 
+    // 1. CSRF Compliance Declaration (Fixes your error)
     $PLUGIN_HOOKS['csrf_compliant']['masterticketsync'] = true;
-    
-    // Register class
+
+    // 2. Class Registrations
     Plugin::registerClass('PluginMasterticketsyncTicketSync', [
         'addtabon' => ['Ticket']
     ]);
 
-    // Add to admin menu
+    // 3. Menu Entries
     $PLUGIN_HOOKS['menu_toadd']['masterticketsync'] = [
-        'admin' => 'PluginMasterticketsyncMenu'
+        'admin' => 'PluginMasterticketsyncMenu',
+        'ticket' => 'PluginMasterticketsyncTicket'
     ];
 
-    // Ticket hooks
+    // 4. Hooks
     $PLUGIN_HOOKS['item_add']['masterticketsync'] = [
         'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleNewTicket']
     ];
@@ -32,7 +34,7 @@ function plugin_init_masterticketsync() {
         'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleTicketUpdate']
     ];
 
-    // Add config page
+    // 5. Config Page
     $PLUGIN_HOOKS['config_page']['masterticketsync'] = 'front/config.form.php';
 }
 
