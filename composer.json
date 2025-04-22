@@ -1,9 +1,5 @@
 {
-    "name": "mdnscode/masterticketsync",
-    "description": "Sync parent/child tickets in GLPI",
-    "type": "glpi-plugin",
-    "license": "MIT",
-    "require": {
-        "php": ">=7.4"
-    }
+  "name": "mdnscode/masterticketsync",
+  "description": "GLPI Master Ticket Sync Plugin",
+  "type": "glpi-plugin"
 }
