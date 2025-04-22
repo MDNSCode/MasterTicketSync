@@ -11,21 +11,25 @@ if (!defined('GLPI_ROOT')) {
 function plugin_init_masterticketsync() {
     global $PLUGIN_HOOKS;
 
-    // 1. CSRF Compliance Declaration (Fixes your error)
+    // ========== CORE CSRF CONFIGURATION ==========
     $PLUGIN_HOOKS['csrf_compliant']['masterticketsync'] = true;
-
-    // 2. Class Registrations
+    
+    // ========== SECURITY HEADERS ==========
+    $PLUGIN_HOOKS['add_css']['masterticketsync'] = 'security_headers.php';
+    
+    // ========== PLUGIN REGISTRATION ==========
     Plugin::registerClass('PluginMasterticketsyncTicketSync', [
-        'addtabon' => ['Ticket']
+        'addtabon' => ['Ticket'],
+        'csrf'     => true  // Explicit CSRF protection for class methods
     ]);
 
-    // 3. Menu Entries
+    // ========== MENU INTEGRATION ==========
     $PLUGIN_HOOKS['menu_toadd']['masterticketsync'] = [
-        'admin' => 'PluginMasterticketsyncMenu',
+        'admin'  => 'PluginMasterticketsyncMenu',
         'ticket' => 'PluginMasterticketsyncTicket'
     ];
 
-    // 4. Hooks
+    // ========== TICKET HOOKS ==========
     $PLUGIN_HOOKS['item_add']['masterticketsync'] = [
         'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleNewTicket']
     ];
@@ -34,21 +38,13 @@ function plugin_init_masterticketsync() {
         'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleTicketUpdate']
     ];
 
-    // 5. Config Page
-    $PLUGIN_HOOKS['config_page']['masterticketsync'] = 'front/config.form.php';
+    // ========== CONFIGURATION ==========
+    $PLUGIN_HOOKS['config_page']['masterticketsync'] = [
+        'page'  => 'front/config.form.php',
+        'title' => 'Master Ticket Sync Configuration'
+    ];
 }
 
-function plugin_masterticketsync_getAddSearchOptions($itemtype) {
-    $sopt = [];
-    
-    if ($itemtype == 'Ticket') {
-        $sopt[1000] = [
-            'table'     => 'glpi_plugin_masterticketsync_relations',
-            'field'     => 'master_ticket_id',
-            'name'      => __('Master Ticket', 'masterticketsync'),
-            'datatype'  => 'dropdown'
-        ];
-    }
-    
-    return $sopt;
-}
+// ========== SECURITY HEADERS FILE ==========
+// Create new file: security_headers.php in plugin root
+// Content: <?php header("X-Content-Type-Options: nosniff");
