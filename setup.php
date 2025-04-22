@@ -13,7 +13,7 @@ function plugin_version_masterticketsync() {
     return [
         'name'           => 'Master Ticket Sync',
         'version'        => '1.0.1',
-        'author'         => 'Your Name',
+        'author'         => 'Matthew Nixon',
         'license'        => 'GPLv2+',
         'homepage'       => 'https://github.com/MDNSCode/masterticketsync',
         'requirements'   => [
