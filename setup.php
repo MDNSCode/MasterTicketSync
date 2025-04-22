@@ -1,71 +1,94 @@
 <?php
 /**
- * Master Ticket Sync - Plugin setup
- * @author Matthew Nixon
- * @license MIT
+ * Master Ticket Sync plugin setup
+ *
+ * @package MasterTicketSync
+ * @license GPLv2+
  */
 
-// Plugin version constants
-define('PLUGIN_MASTERTICKETSYNC_VERSION', '1.0.0');
-define('PLUGIN_MASTERTICKETSYNC_MIN_GLPI', '10.0.0');
-define('PLUGIN_MASTERTICKETSYNC_MAX_GLPI', '11.0.99');
-
-/**
- * Initialize the plugin
- */
-function plugin_init_masterticketsync() {
-    global $PLUGIN_HOOKS;
-    
-    // Register only the hooks we need
-    $PLUGIN_HOOKS['item_update']['masterticketsync'] = 'plugin_masterticketsync_item_update';
-    $PLUGIN_HOOKS['followup_add']['masterticketsync'] = 'plugin_masterticketsync_followup_add';
-    $PLUGIN_HOOKS['itilsolution_add']['masterticketsync'] = 'plugin_masterticketsync_solution_add';
+// Prevent direct access
+if (!defined('GLPI_ROOT')) {
+    die("Sorry - you can't access this file directly");
 }
 
-/**
- * Plugin version information
- */
 function plugin_version_masterticketsync() {
     return [
         'name'           => 'Master Ticket Sync',
-        'version'        => PLUGIN_MASTERTICKETSYNC_VERSION,
+        'version'        => '1.0.0',
         'author'         => 'Matthew Nixon',
-        'license'        => 'MIT',
-        'homepage'       => 'https://github.com/MDNSCode/MasterTicketSync',
+        'license'        => 'GPLv2+',
+        'homepage'       => 'https://github.com/MDNSCode/masterticketsync',
         'requirements'   => [
             'glpi' => [
-                'min' => PLUGIN_MASTERTICKETSYNC_MIN_GLPI,
-                'max' => PLUGIN_MASTERTICKETSYNC_MAX_GLPI,
+                'min' => '10.0',
+                'max' => '11.0'
+            ],
+            'php' => [
+                'min' => '7.4'
             ]
         ]
     ];
 }
 
-/**
- * Installation (no database setup needed)
- */
-function plugin_masterticketsync_install() {
-    return true;
-}
-
-/**
- * Uninstallation
- */
-function plugin_masterticketsync_uninstall() {
-    return true;
-}
-
-/**
- * Check prerequisites (PHP version, GLPI version, etc.)
- */
 function plugin_masterticketsync_check_prerequisites() {
+    if (version_compare(GLPI_VERSION, '10.0', '<') || version_compare(GLPI_VERSION, '11.0', '>')) {
+        echo "This plugin requires GLPI 10.0 to 11.0";
+        return false;
+    }
     return true;
 }
 
-/**
- * Check if plugin configuration is valid
- */
 function plugin_masterticketsync_check_config($verbose = false) {
+    if ($verbose) {
+        echo "Master Ticket Sync configuration is OK";
+    }
     return true;
 }
-?>
+
+function plugin_masterticketsync_install() {
+    global $DB;
+
+    // Create plugin tables if needed
+    $migration = new Migration(plugin_version_masterticketsync()['version']);
+
+    // Example table creation (modify as needed)
+    if (!$DB->tableExists('glpi_plugin_masterticketsync_tickets')) {
+        $query = "CREATE TABLE `glpi_plugin_masterticketsync_tickets` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `tickets_id` INT(11) NOT NULL,
+            `master_ticket` INT(11) NOT NULL,
+            `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            INDEX (`tickets_id`),
+            INDEX (`master_ticket`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+        $DB->queryOrDie($query, $DB->error());
+    }
+
+    // Add configuration if needed
+    Config::setConfigurationValues('plugin:masterticketsync', [
+        'sync_enabled' => 1,
+        'default_category' => 0
+    ]);
+
+    return true;
+}
+
+function plugin_masterticketsync_uninstall() {
+    global $DB;
+
+    // Clean configuration
+    $config = new Config();
+    $config->deleteByCriteria(['context' => 'plugin:masterticketsync']);
+
+    // Remove tables if needed (uncomment when ready)
+    // $tables = [
+    //     'glpi_plugin_masterticketsync_tickets'
+    // ];
+    // foreach ($tables as $table) {
+    //     $DB->queryOrDie("DROP TABLE IF EXISTS `$table`", $DB->error());
+    // }
+
+    return true;
+}
