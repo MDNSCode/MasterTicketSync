@@ -1,55 +1,57 @@
-<root>
-      <name>Example</name>
-      <key>example</key>
-      <state>stable</state>
-      <logo>https://raw.githubusercontent.com/pluginsGLPI/example/master/misc/logo.png</logo>
-      <description>
-         <short>
-            <cs>GLPI zásuvný modul pro ukázku, užitečný jako základ pro nějaký nový</cs>
-            <en>GLPI example plugin useful to bootstrap a new one</en>
-            <fr>Plugin GLPI d'example utile pour en démarrer un</fr>
-         </short>
-         <long>
-            <cs>GLPI zásuvný modul pro ukázku, užitečný jako základ pro nějaký nový, pokud z něho vycházíte, měli byste přitom upravit každou z kolonek tohoto souboru a přečíst si obsah README.md</cs>
-            <en>GLPI example plugin useful to bootstrap a new one, you should edit every field of this file, and see README.md</en>
-            <fr>Plugin GLPI d'example utile pour en démarrer un, vous devriez editer tous les champs de ce fichier, et voir README.md</fr>
-         </long>
-      </description>
-      <homepage>https://github.com/pluginsGLPI/example</homepage>
-      <download>https://github.com/pluginsGLPI/example/releases</download>
-      <issues>https://github.com/pluginsGLPI/example/issues</issues>
-      <readme>https://raw.githubusercontent.com/pluginsGLPI/example/master/README.md</readme>
-      <authors>
-         <author>Teclib'</author>
-         <author>Indepnet</author>
-      </authors>
-      <versions>
-         <version>
-            <num>0.0.1</num>
-            <compatibility>~10.0.0</compatibility>
-         </version>
-      </versions>
-      <langs>
-         <lang>cs_CZ</lang>
-         <lang>en_GB</lang>
-         <lang>fr_FR</lang>
-      </langs>
-      <license>GPL v2+</license>
-      <tags>
-         <cs>
-            <tag>ukázka</tag>
-         </cs>
-         <en>
-            <tag>example</tag>
-         </en>
-         <fr>
-            <tag>exemple</tag>
-         </fr>
-      </tags>
-      <screenshots>
-         <screenshot>https://raw.githubusercontent.com/pluginsGLPI/example/master/misc/screenshots/first.png</screenshot>
-         <screenshot>https://raw.githubusercontent.com/pluginsGLPI/example/master/misc/screenshots/second.png</screenshot>
-         <screenshot>https://raw.githubusercontent.com/pluginsGLPI/example/master/misc/screenshots/third.png</screenshot>
-         <screenshot>https://raw.githubusercontent.com/pluginsGLPI/example/master/misc/screenshots/fourth.png</screenshot>
-      </screenshots>
-</root>
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <name>masterticketsync</name>
+  <version>1.0.1</version>
+  <license>GPLv2+</license>
+  <author>Matthew Nixon</author>
+  <homepage>https://github.com/MDNSCode/masterticketsync</homepage>
+  <description lang="en_GB">
+    Synchronizes master and slave tickets with automatic relationship tracking
+    and status propagation between connected tickets.
+  </description>
+  
+  <requirements>
+    <glpi min="10.0" max="11.0" />
+    <php min="7.4" />
+  </requirements>
+
+  <types>
+    <type>Ticket</type>
+    <type>Config</type>
+  </types>
+
+  <hooks>
+    <hook name="item_add" file="hook.php" handler="handleNewTicket" type="Ticket" />
+    <hook name="item_update" file="hook.php" handler="handleTicketUpdate" type="Ticket" />
+    <hook name="config_page" file="hook.php" />
+  </hooks>
+
+  <database>
+    <table name="glpi_plugin_masterticketsync_relations">
+      <field name="id" type="autoincrement" />
+      <field name="master_ticket_id" type="int" unsigned="true" />
+      <field name="slave_ticket_id" type="int" unsigned="true" />
+      <field name="created_at" type="timestamp" default="CURRENT_TIMESTAMP" />
+      <key type="primary" field="id" />
+      <key type="unique" name="master_slave" field="master_ticket_id,slave_ticket_id" />
+      <key type="index" name="master" field="master_ticket_id" />
+      <key type="index" name="slave" field="slave_ticket_id" />
+      <foreign key="master_ticket_id" table="glpi_tickets" field="id" />
+      <foreign key="slave_ticket_id" table="glpi_tickets" field="id" />
+    </table>
+  </database>
+
+  <menus>
+    <menu type="config" name="Master Ticket Sync" 
+          directory="masterticketsync" 
+          page="front/config.form.php" />
+  </menus>
+
+  <profiles>
+    <profile name="PluginMasterticketsync" interface="admin" />
+  </profiles>
+
+  <tables>
+    <table name="glpi_plugin_masterticketsync_relations" />
+  </tables>
+</plugin>
