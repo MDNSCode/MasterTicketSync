@@ -1,62 +1,52 @@
 <?php
 /**
- * Master Ticket Sync plugin hooks
- * 
+ * Master Ticket Sync - Hooks
  * @package MasterTicketSync
- * @license GPLv2+
  */
 
-// Prevent direct access
 if (!defined('GLPI_ROOT')) {
-    die("Sorry - you can't access this file directly");
+    die("Direct access not allowed");
 }
 
 function plugin_init_masterticketsync() {
     global $PLUGIN_HOOKS;
 
-    // Required hooks
     $PLUGIN_HOOKS['csrf_compliant']['masterticketsync'] = true;
     
-    // Add plugin to the admin menu
+    // Register class
+    Plugin::registerClass('PluginMasterticketsyncTicketSync', [
+        'addtabon' => ['Ticket']
+    ]);
+
+    // Add to admin menu
     $PLUGIN_HOOKS['menu_toadd']['masterticketsync'] = [
         'admin' => 'PluginMasterticketsyncMenu'
     ];
 
-    // Register the ticket class to show tabs on Ticket items
-    Plugin::registerClass('PluginMasterticketsyncTicket', [
-        'addtabon' => ['Ticket']
-    ]);
-
-    // Add configuration page
-    $PLUGIN_HOOKS['config_page']['masterticketsync'] = 'front/config.form.php';
-
-    // Add plugin to helpdesk menu (if needed)
-    // $PLUGIN_HOOKS['menu_toadd']['masterticketsync'] = [
-    //     'helpdesk' => 'PluginMasterticketsyncMenu'
-    // ];
-
-    // Hook for when a ticket is shown
-    $PLUGIN_HOOKS['post_item_form']['masterticketsync'] = [
-        'Ticket' => 'plugin_masterticketsync_postshow'
+    // Ticket hooks
+    $PLUGIN_HOOKS['item_add']['masterticketsync'] = [
+        'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleNewTicket']
     ];
-
-    // Hook for when a ticket is updated
+    
     $PLUGIN_HOOKS['item_update']['masterticketsync'] = [
-        'Ticket' => 'plugin_masterticketsync_ticketupdate'
+        'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleTicketUpdate']
     ];
+
+    // Add config page
+    $PLUGIN_HOOKS['config_page']['masterticketsync'] = 'front/config.form.php';
 }
 
-function plugin_version_masterticketsync() {
-    return plugin_version_masterticketsync();
-}
-
-function plugin_masterticketsync_postshow($params) {
-    // Your code to execute after ticket form is shown
-}
-
-function plugin_masterticketsync_ticketupdate($item) {
-    // Your code to execute when a ticket is updated
-    if ($item->getType() == 'Ticket') {
-        // Handle ticket update logic
+function plugin_masterticketsync_getAddSearchOptions($itemtype) {
+    $sopt = [];
+    
+    if ($itemtype == 'Ticket') {
+        $sopt[1000] = [
+            'table'     => 'glpi_plugin_masterticketsync_relations',
+            'field'     => 'master_ticket_id',
+            'name'      => __('Master Ticket', 'masterticketsync'),
+            'datatype'  => 'dropdown'
+        ];
     }
+    
+    return $sopt;
 }
