@@ -1,9 +1,14 @@
-<?php
-function plugin_masterticketsync_register_hooks() {
+function plugin_init_masterticketsync() {  // ← All lowercase
     global $PLUGIN_HOOKS;
     
-    $PLUGIN_HOOKS['item_update']['masterticketsync'] = 'plugin_masterticketsync_item_update';
-    $PLUGIN_HOOKS['followup_add']['masterticketsync'] = 'plugin_masterticketsync_followup_add';
-    $PLUGIN_HOOKS['itilsolution_add']['masterticketsync'] = 'plugin_masterticketsync_solution_add';
+    $PLUGIN_HOOKS = [
+        'csrf_compliant' => ['masterticketsync' => true],  // ← Consistent lowercase
+        'menu_toadd'     => ['admin' => 'PluginMasterticketsyncMenu'],  // ← Add this
+        'config_page'    => ['masterticketsync' => 'front/config.form.php']  // ← Add if needed
+    ];
+    
+    // Register your ticket class
+    Plugin::registerClass('PluginMasterticketsyncTicket', [
+        'addtabon' => ['Ticket']
+    ]);
 }
-?>
