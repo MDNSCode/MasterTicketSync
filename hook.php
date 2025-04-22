@@ -1,9 +1,5 @@
 <?php
-/**
- * Master Ticket Sync - Hooks
- * @package MasterTicketSync
- */
-
+// security check
 if (!defined('GLPI_ROOT')) {
     die("Direct access not allowed");
 }
@@ -11,40 +7,32 @@ if (!defined('GLPI_ROOT')) {
 function plugin_init_masterticketsync() {
     global $PLUGIN_HOOKS;
 
-    // ========== CORE CSRF CONFIGURATION ==========
+    // 1. CSRF Compliance (fixes your error)
     $PLUGIN_HOOKS['csrf_compliant']['masterticketsync'] = true;
-    
-    // ========== SECURITY HEADERS ==========
-    $PLUGIN_HOOKS['add_css']['masterticketsync'] = 'security_headers.php';
-    
-    // ========== PLUGIN REGISTRATION ==========
-    Plugin::registerClass('PluginMasterticketsyncTicketSync', [
+
+    // 2. Add security headers
+    $PLUGIN_HOOKS['add_css']['masterticketsync'] = function() {
+        header("X-Content-Type-Options: nosniff");
+        header("X-Frame-Options: DENY");
+    };
+
+    // 3. Register main class
+    Plugin::registerClass('PluginMasterticketsyncTicket', [
         'addtabon' => ['Ticket'],
-        'csrf'     => true  // Explicit CSRF protection for class methods
+        'csrf' => true  // Explicit CSRF protection
     ]);
 
-    // ========== MENU INTEGRATION ==========
+    // 4. Admin menu integration
     $PLUGIN_HOOKS['menu_toadd']['masterticketsync'] = [
-        'admin'  => 'PluginMasterticketsyncMenu',
-        'ticket' => 'PluginMasterticketsyncTicket'
+        'admin' => 'PluginMasterticketsyncMenu'
     ];
 
-    // ========== TICKET HOOKS ==========
+    // 5. Ticket hooks
     $PLUGIN_HOOKS['item_add']['masterticketsync'] = [
-        'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleNewTicket']
+        'Ticket' => ['PluginMasterticketsyncTicket', 'item_add_ticket']
     ];
     
     $PLUGIN_HOOKS['item_update']['masterticketsync'] = [
-        'Ticket' => ['PluginMasterticketsyncTicketSync', 'handleTicketUpdate']
-    ];
-
-    // ========== CONFIGURATION ==========
-    $PLUGIN_HOOKS['config_page']['masterticketsync'] = [
-        'page'  => 'front/config.form.php',
-        'title' => 'Master Ticket Sync Configuration'
+        'Ticket' => ['PluginMasterticketsyncTicket', 'item_update_ticket']
     ];
 }
-
-// ========== SECURITY HEADERS FILE ==========
-// Create new file: security_headers.php in plugin root
-// Content: <?php header("X-Content-Type-Options: nosniff");
